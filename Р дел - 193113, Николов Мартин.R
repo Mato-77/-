@@ -1,0 +1,232 @@
+
+Podatoci <- read.csv("2019.csv")
+# Prv del ----
+{
+  #1. Tabela i histogram i poligon ----
+  {
+    
+  #Tabela so raspredelba na cestoti na dvette kvantitavni oblezja ----
+    {
+    
+  #Obelezje 1 ----
+    
+  GDP <- Podatoci[,4]
+  Range<- max(GDP)- min(GDP)
+  rGDP <- ceiling(1 + 3.322 * log(length(GDP),10))
+  width <- Range/rGDP
+  sort(GDP)
+  breaks<- seq(min(GDP)-0.1,max(GDP)+0.1, by=width)
+  intervals <- cut(GDP, breaks) 
+  intervals
+  freq <- table(intervals)
+  Rfreq <- freq/length(GDP)
+  Cumfreq <- cumsum(freq)
+  R_Cumfreq <- cumsum(freq/length(GDP))
+  R_Cumfreq2 <- cumsum(Rfreq)
+  Pfreq <- Rfreq*100
+  P_Cumfreq <- R_Cumfreq*100
+  sredniGDP <- c()
+  sredniGDP
+  for(i in 1: length(breaks)-1)
+    sredniGDP <- c(sredniGDP,(breaks[i]+breaks[i+1])/2)
+  GDP.table <- cbind(sredniGDP,freq,Rfreq, Cumfreq, Pfreq, P_Cumfreq)
+  GDP.table <- as.table(GDP.table)
+
+
+  
+  #Obelezje 2 ----
+
+  Social <- Podatoci[,5]
+  RangeSocial <- max(Social) - min(Social)
+  rSocial <- ceiling (1 + 3.322 * log(length(Social),10))
+  widthSocial <-  RangeSocial/rSocial
+  sort(Social)                    
+  breaksSocial <- seq(min(Social)-0.1,max(Social)+0.1,by=widthSocial)
+  intervalsSocial <- cut(Social, breaksSocial)
+  cestota <- table(intervalsSocial)
+  RCestota <- cestota / length(Social)
+  kumCestota <- cumsum(cestota)
+  RKumCestota <- cumsum(cestota/length(Social))
+  RKumCestota2 <- cumsum(RCestota)
+  pCestota <-  RCestota *100
+  pKum <- RKumCestota*100
+  sredniSocial <- c()
+  for(i in 1: length(breaks)-1)
+    sredniSocial<- c(sredniSocial,(breaksSocial[i]+breaksSocial[i+1])/2)
+  Social.table <- cbind(sredniSocial, cestota, RCestota, kumCestota, pCestota, pKum)
+Social.table <- as.table(Social.table)
+  }
+  #Histogram---
+    {
+      #Obelezje 1 ----
+      
+      colors = c("red", "yellow", "green", "violet", "orange", "blue", "pink")
+      h1 <- hist(GDP, right = FALSE, breaks = breaks, col = colors, main = "Bruto domasen proizvod", ylab = "Cestoti",xlab = "Sredni tocki na intervali")
+      lines(sredniGDP,freq)
+      
+      #Obelezje 2 ----
+      
+      h2 <- hist(Social, right = FALSE, breaks = breaksSocial, col = colors, main = "Socialna poddrska", ylab = "Cestoti",xlab = "Sredni tocki na intervali")
+      lines(sredniSocial,cestota)
+      
+    }
+    #Poligon ----
+    {
+      #Obelezje 1 ----
+      
+      P_Cumfreq0 <- c(0, P_Cumfreq) 
+      plot(breaks, P_Cumfreq0, axes = F,main = "Poligon na kumulativni cestoti vo % (Ogive)", xlab = "Intervali", ylab = "Kumulativni cestoti %") 
+      axis(side = 1, at = breaks) 
+      axis(side = 2) 
+      lines(breaks, P_Cumfreq0) 
+      
+      #Obelezje 2 ----
+      
+      P_Cumfreq0 <- c(0, RKumCestota) 
+      plot(breaksSocial, P_Cumfreq0, axes = F,main = "Poligon na kumulativni cestoti vo % (Ogive)", xlab = "Intervali", ylab = "Kumulativni cestoti %") 
+      axis(side = 1, at = breaksSocial) 
+      axis(side = 2) 
+      lines(breaksSocial, P_Cumfreq0) 
+      
+      
+    }
+  }
+  #2. Steblo-list ----
+  {
+    
+    GDP <- sort(GDP)
+    Social <- sort(Social)
+    library(data.table)
+    Funkcija <- function(x,leftDigits,rounding=1){
+      data <- data.table("x" = x) 
+      data[, left := floor(x/10^leftDigits)] 
+      data[, right := (round(x - left*10^leftDigits, rounding))*10^rounding] 
+      data<-data[, paste(sort(right), collapse = " "), by = left]
+      data[, out := paste(left, " | ", V1), by = left]
+      cat(data$out, sep = "\n")
+    }
+    Obelezje1 <-Funkcija(GDP,0,2)
+  Obelezje2 <- Funkcija(Social,0,2)
+
+  }
+  
+  #3. Grafik na rasejuvanje ----
+  {
+    GDP<- Podatoci[,4]
+    Social <-Podatoci[,5]
+    plot(GDP,Social,main="GDP nasproti Social ",xlab="GDP",ylab="social support")
+    
+  }
+  #4. Moda, Medijana i Prosek----
+  {
+    sort(GDP)
+    sort(Social)
+    # Obelezje 1 ----
+    
+    medijana <-  median(GDP)
+    prosek <- mean(GDP)
+    getmode <- function(v) {
+      uniqv <- unique(v)
+      uniqv[which.max(tabulate(match(v, uniqv)))]
+    }
+    moda <- getmode(GDP)
+    #Obelezje 2 ----
+    medijana2 <- median(Social)
+    prosek2 <- mean(Social)
+    moda2  <- getmode(Social)
+  
+
+   
+  }
+  #5. Kvartali, opseg i interkvartalen raspon ----
+  {
+    # Obelezje 1 ----
+    
+    Kvartal1.GDP.indeks <- 25*length(GDP)/100
+    Kvartal2.GDP <- median(GDP)
+    Kvartal3.GDP.indeks <- 75 * length(GDP)/100
+    Kvartal1.GDP <- (GDP[Kvartal1.GDP.indeks]+GDP[Kvartal1.GDP.indeks+1])/2
+    Kvartal3.GDP <- (GDP[Kvartal3.GDP.indeks]+GDP[Kvartal3.GDP.indeks+1])/2
+    Inter.Raspon.GDP <- Kvartal3.GDP - Kvartal1.GDP
+    Opseg.GDP <- max(GDP) - min(GDP)
+
+    
+    #Obelezje 2 ----
+    
+    #Bidejki n na podatocniot objekt GDP i Social e 156, lokacijata na prviot kvartal i tretiot kvartal kaj dvatta objekti ke se naoga na isto mesto
+    
+    Kvartal1.Social <- (Social[Kvartal1.GDP.indeks]+Social[Kvartal1.GDP.indeks+1])/2
+    Kvartal2.Social <- median(Social)
+    Kvartal3.Social <-(Social[Kvartal3.GDP.indeks]+Social[Kvartal3.GDP.indeks+1])/2
+    Inter.Raspon.Social <- Kvartal3.Social-Kvartal1.Social
+    Opseg.Social <-  max(Social) -  min(Social)
+
+  }
+  
+  
+  #6. Disperzija i standardna devijacija ----
+  {
+    # Obelezje 1 ----
+    
+    St.Devijacija.GDP  <- sd(GDP)
+    
+    Disperzija.GDP <- St.Devijacija.GDP * St.Devijacija.GDP
+    St.Devijacija.GDP
+    Disperzija.GDP
+    
+    #Obelezje 2 ----
+    
+    St.Devijacija.Social <- sd(Social)
+    Disperzija.Social <- St.Devijacija.Social * St.Devijacija.Social
+    St.Devijacija.Social
+    Disperzija.Social
+  }
+  #7. Koeficient na korelacija ---- 
+  {
+    GDP <- Podatoci[,4]
+    Social <- Podatoci[,5]
+    
+    r<-cor(GDP,Social)
+    
+      }
+}
+
+
+# Vtor del ----
+{
+#1. Interval na doverba ----
+  
+  simple.z.test<-function (x,sigma,conf_level=0.95){
+    n <- length(x);
+    xbar<- mean(x);
+    alpha <-  1 - conf_level
+    z<- qnorm(1-alpha/2) 
+    SE <- sigma/sqrt(n)
+    xbar + c(-z*SE,z*SE)
+  }
+  test1 <- simple.z.test(GDP,Disperzija.GDP)
+  test1
+  
+  #2. Hipotezi za raspredlba ----
+  t.test(GDP,alternative = "two.sided",mu=1,conf.level = 0.95)
+  
+  #3. Test za raspredlba ----
+  GDP <- Podatoci[,4]
+  Social <- Podatoci[,5]
+  chisq.test(rbind(GDP,Social))
+  
+  #4 Test za nezaviznost ----
+  tabelaZaTestiranje <-  table(GDP,Social)
+  chisq.test(tabelaZaTestiranje)
+  
+  #5 Regresiona analiza  ----
+  plot(GDP,Social,main="?????????? ???????? GDP ?? Social ")
+  cor(GDP,Social)
+  model <- lm(GDP ~ Social)
+  summary(model)
+  abline(model,col=2,lwd=3)
+  lm(GDP~Social)
+  
+}
+
+
